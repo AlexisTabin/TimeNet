@@ -126,12 +126,12 @@ def build_epoch_tasks(recording_id: str, span_annotations: Sequence[Annotation])
     for stage in span_annotations:
         if stage.span is None:
             raise TimeFFormatError(
-                f"{recording_id}: the scored entry {stage.id!r} states no span, so it holds no epoch"
+                f"{recording_id}: a scored entry of {stage.value!r} states no span, so it holds no epoch"
             )
 
         if stage.value not in STAGE_LABELS:
             raise TimeFFormatError(
-                f"{recording_id}: the scored entry {stage.id!r} states {stage.value!r}, "
+                f"{recording_id}: the scored entry at {stage.span.start_us} us states {stage.value!r}, "
                 f"which is not a label this release writes"
             )
 
@@ -325,9 +325,11 @@ def iter_tasks(records: Sequence[Record]) -> Iterator[Task]:
         # in one of them rather than in neither. Each builder then takes the part it reads.
         span_annotations = [one for one in record.annotations if one.span is not None]
         non_span_annotations = [one for one in record.annotations if one.span is None]
+        # Every signal that the technician read carries each stage. So one epoch has one
+        # occurrence for each signal. The same span and label mean the same stage.
         stages = list(
             {
-                one.id: one
+                (one.span, one.value): one
                 for signal in record.signals
                 for one in signal.annotations
                 if one.key == AnnotationKey.SLEEP_STAGE
