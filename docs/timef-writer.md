@@ -89,23 +89,22 @@ The writer fails before publication when it finds an invalid state, including:
 - irregular offsets that disagree with their axis; or
 - chunk rows that do not cover a Signal exactly.
 
-These failures raise TimeNet validation errors. Where possible, the errors name object IDs and
-relationship fields. The writer checks most of them while it streams rows. It uses the ID sets and
-key sequences it owns. It does not keep the ID of every task, so after the last task batch it runs
-one query on `tasks` to find a repeated task ID.
+These failures raise TimeNet validation errors. Where possible, the errors include object IDs and
+relationship fields. The writer checks most failures while it streams rows. It uses the ID sets
+that it owns. It does not keep the ID of every task, so after the last task batch it runs one query
+on `tasks` to find a repeated task ID.
 
 Each Record and Signal that a task refers to, as an input, a target, or in a span, must be the
-same object that the dataset registered under that ID. So a Record from another dataset fails,
+same object that the dataset registered under that ID. Thus a Record from another dataset fails,
 even when its ID is in use in this dataset.
 
-The writer inserts annotation references after the occurrences get their ids. So an annotation
+The writer inserts annotation references after the occurrences get their IDs. Thus an annotation
 that is not attached in the dataset fails at that step. The writer inserts dependencies after the
-last task batch. Each parent must be the same Task object that the write stored under that ID. So
+last task batch. Each parent must be the same Task object that the write stored under that ID. Thus
 a parent from another dataset fails, even when its ID is in use in this dataset.
 
-The same invariants exist in SQL form in `timenet.format.control_audit.audit_control_database()`.
-That function scans every table of a `control.duckdb`, and the test suite runs it after each round
-trip.
+`timenet.format.control_audit.audit_control_database()` holds the same invariants in SQL form. It
+scans every table of a `control.duckdb`. The test suite runs it after each round trip.
 
 Sources, axes, and annotations have no ID, so the writer does not compare IDs for them. It stores
 equal annotation contents once, and equal regular or ordinal axes once. It matches irregular axes
